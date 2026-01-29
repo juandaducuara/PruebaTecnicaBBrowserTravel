@@ -32,9 +32,9 @@ tests/
 
 ## Requisitos previos
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) o superior
-- MySQL Server corriendo en `localhost:3306`
-- MongoDB corriendo en `localhost:27017`
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- MySQL Server corriendo en `localhost:3306` (usuario `root`, sin contraseña)
+- MongoDB corriendo en `localhost:27017` (opcional, la API funciona sin él)
 
 ## Cómo ejecutar
 
@@ -50,7 +50,7 @@ tests/
    ```json
    {
      "ConnectionStrings": {
-       "MySQL": "Server=localhost;Database=outletrentalcars;User=root;Password=root;"
+       "MySQL": "Server=localhost;Database=outletrentalcars;User=root;Password=;"
      },
      "MongoDB": {
        "ConnectionString": "mongodb://localhost:27017",
@@ -65,31 +65,40 @@ tests/
    ```
    La API arranca y crea las tablas/colecciones automáticamente con datos de prueba.
 
-4. **Probar el endpoint de búsqueda**
+4. **Abrir Swagger**
+
+   Swagger se abre automáticamente en el navegador. También puedes acceder en: `https://localhost:5001/swagger`
+
+5. **Probar el endpoint de búsqueda**
    ```
-   GET /api/vehicles/search?pickupLocationId=a1b2c3d4-0001-0001-0001-000000000001&dropoffLocationId=a1b2c3d4-0001-0001-0001-000000000002&pickupDate=2026-04-01T10:00:00Z&dropoffDate=2026-04-05T10:00:00Z
+   GET /api/vehicles/search?pickupLocationId=1&dropoffLocationId=2&pickupDate=2026-04-01&dropoffDate=2026-04-05
    ```
 
-5. **Crear una reserva**
+   También puedes filtrar por tipo de vehículo:
+   ```
+   GET /api/vehicles/search?pickupLocationId=1&dropoffLocationId=2&pickupDate=2026-04-01&dropoffDate=2026-04-05&vehicleType=suv
+   ```
+
+6. **Crear una reserva**
    ```
    POST /api/reservations
    Content-Type: application/json
 
    {
-     "vehicleId": "b1b2c3d4-0002-0002-0002-000000000002",
-     "pickupLocationId": "a1b2c3d4-0001-0001-0001-000000000001",
-     "dropoffLocationId": "a1b2c3d4-0001-0001-0001-000000000002",
-     "pickupDate": "2026-04-10T10:00:00Z",
-     "dropoffDate": "2026-04-15T10:00:00Z",
-     "customerName": "Carlos Rodríguez"
+     "vehicleId": 2,
+     "pickupLocationId": 1,
+     "dropoffLocationId": 2,
+     "pickupDate": "2026-05-01T10:00:00Z",
+     "dropoffDate": "2026-05-05T10:00:00Z",
+     "customerName": "Carlos López"
    }
    ```
 
 ## Ejecutar pruebas
 
 ```bash
-# Todas las pruebas
-dotnet test
+# Todas las pruebas (18 tests: 13 unitarios + 5 integración)
+dotnet test --verbosity normal
 
 # Solo unitarias
 dotnet test tests/OutletRentalCars.Tests.Unit
@@ -98,18 +107,36 @@ dotnet test tests/OutletRentalCars.Tests.Unit
 dotnet test tests/OutletRentalCars.Tests.Integration
 ```
 
+## Documentación adicional
+
+- [PRUEBAS_SWAGGER.md](PRUEBAS_SWAGGER.md) - Guía completa con 13 casos de prueba para probar la API desde Swagger
+
 ## Datos de prueba (seed)
 
-| Localidad | País |
-|---|---|
-| Bogotá - El Dorado | Colombia |
-| Medellín - José María Córdova | Colombia |
-| Miami International Airport | USA |
+### Localidades
 
-| Vehículo | Localidad | Estado |
-|---|---|---|
-| Toyota Corolla 2023 | Bogotá | Disponible (con reserva del 1-5 Mar 2026) |
-| Chevrolet Tracker 2024 | Bogotá | Disponible |
-| Renault Kwid 2023 | Bogotá | En mantenimiento |
-| Mazda CX-5 2024 | Medellín | Disponible |
-| Ford Mustang 2024 | Miami | Disponible |
+| ID | Nombre | País |
+|----|--------|------|
+| 1 | Bogotá - El Dorado | Colombia |
+| 2 | Medellín - José María Córdova | Colombia |
+| 3 | Cali - Alfonso Bonilla Aragón | Colombia |
+
+### Vehículos
+
+| ID | Vehículo | Tipo | Localidad | Estado |
+|----|----------|------|-----------|--------|
+| 1 | Toyota Corolla | sedan | Bogotá | Disponible (reserva 1-5 Mar 2026) |
+| 2 | Chevrolet Tracker | suv | Bogotá | Disponible |
+| 3 | Renault Kwid | economy | Bogotá | Mantenimiento |
+| 4 | Mazda CX-5 | suv | Medellín | Disponible |
+| 5 | Kia Sportage | sport | Medellín | Disponible |
+| 6 | Nissan Versa | sedan | Cali | Disponible |
+
+### Tipos de vehículo
+
+| Tipo | Descripción |
+|------|-------------|
+| sedan | Vehículo de 4 puertas, ideal para ciudad |
+| suv | Vehículo utilitario deportivo |
+| economy | Vehículo compacto de bajo consumo |
+| sport | Vehículo de alto rendimiento |
